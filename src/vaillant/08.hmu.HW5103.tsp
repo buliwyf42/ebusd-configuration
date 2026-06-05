@@ -32,6 +32,125 @@ namespace Hmu_HW5103 {
     cycles: cntstarts;
   }
 
+  /** HMU display state: compressor power, environmental yield and heater main/backup operating mode */
+  @inherit(r_1)
+  @ext(0x7)
+  model Status07 {
+    /** compressor power */
+    @unit("%")
+    power: UCH;
+
+    /** daily environmental energy yield */
+    @divisor(10)
+    dailyenvyield: energy;
+
+    /** heater main enabled */
+    @values(Values_onoff)
+    display_b0_heaterenabled: BI0;
+
+    /** reserved bit 1 */
+    @values(Values_onoff)
+    display_b1: BI1;
+
+    /** backup heater active */
+    @values(Values_onoff)
+    display_b2_backupheater: BI2;
+
+    /** reserved bit 3 */
+    @values(Values_onoff)
+    display_b3: BI3;
+
+    /** reserved bit 4 */
+    @values(Values_onoff)
+    display_b4: BI4;
+
+    /** noise reduction active */
+    @values(Values_onoff)
+    display_b5_noisereduction: BI5;
+
+    /** DHW eco mode */
+    @values(Values_onoff)
+    display_b6_dhwecomode: BI6;
+
+    /** reserved bit 7 */
+    @values(Values_onoff)
+    display_b7: BI7;
+
+    // heater main operating mode (bit field; bit semantics per @hanjo in #614,
+    // confirmed against a 72 h bus capture: only standby/heating/warmwater seen here)
+
+    /** reserved bit 0 */
+    @values(Values_onoff)
+    heatermain_b0: BI0;
+
+    /** error active (Komfortsicherung) */
+    @values(Values_onoff)
+    heatermain_b1_error: BI1;
+
+    /** reserved bit 2 */
+    @values(Values_onoff)
+    heatermain_b2: BI2;
+
+    /** heating active */
+    @values(Values_onoff)
+    heatermain_b3_heating: BI3;
+
+    /** cooling active */
+    @values(Values_onoff)
+    heatermain_b4_cooling: BI4;
+
+    /** pressure loss */
+    @values(Values_onoff)
+    heatermain_b5_pressureloss: BI5;
+
+    /** reserved bit 6 */
+    @values(Values_onoff)
+    heatermain_b6: BI6;
+
+    /** hot water active */
+    @values(Values_onoff)
+    heatermain_b7_warmwater: BI7;
+
+    /** system pressure */
+    @unit("bar")
+    @divisor(30)
+    DisplayPressure: UCH;
+
+    // backup heater operating mode (same bit field as the main heater)
+
+    /** reserved bit 0 */
+    @values(Values_onoff)
+    heaterbackup_b0: BI0;
+
+    /** error active (Komfortsicherung) */
+    @values(Values_onoff)
+    heaterbackup_b1_error: BI1;
+
+    /** reserved bit 2 */
+    @values(Values_onoff)
+    heaterbackup_b2: BI2;
+
+    /** heating active */
+    @values(Values_onoff)
+    heaterbackup_b3_heating: BI3;
+
+    /** cooling active */
+    @values(Values_onoff)
+    heaterbackup_b4_cooling: BI4;
+
+    /** pressure loss */
+    @values(Values_onoff)
+    heaterbackup_b5_pressureloss: BI5;
+
+    /** reserved bit 6 */
+    @values(Values_onoff)
+    heaterbackup_b6: BI6;
+
+    /** hot water active */
+    @values(Values_onoff)
+    heaterbackup_b7_warmwater: BI7;
+  }
+
   /** default *r */
   @base(MF, 0x1a, 0x5, 0xff, 0x32)
   model r_2 {
