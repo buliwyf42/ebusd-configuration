@@ -67,7 +67,9 @@ namespace Vr_71 {
   @inherit(w_1)
   @ext(0x2, 0)
   model Mc1Operation {
-    status: onoff;
+    @values(Values_McStatus)
+    status: UCH;
+
     flowtempdesired: temp1;
 
     @in
@@ -80,7 +82,9 @@ namespace Vr_71 {
   @inherit(w_1)
   @ext(0x2, 1)
   model Mc2Operation {
-    status: onoff;
+    @values(Values_McStatus)
+    status: UCH;
+
     flowtempdesired: temp1;
 
     @in
@@ -93,7 +97,9 @@ namespace Vr_71 {
   @inherit(w_1)
   @ext(0x2, 0x2)
   model Mc3Operation {
-    status: onoff;
+    @values(Values_McStatus)
+    status: UCH;
+
     flowtempdesired: temp1;
 
     @in
@@ -135,6 +141,17 @@ namespace Vr_71 {
   enum Values_ActorState {
     off: 0,
     on: 20,
+  }
+
+  /**
+   * Mixer-circuit operation status. Value 4 is written by the controller in a
+   * short daily burst (~5 min) on otherwise-off circuits — a "keep valve
+   * operable" maintenance run (anti-seize). See issue #620.
+   */
+  enum Values_McStatus {
+    off: 0,
+    on: 1,
+    keepValveOperable: 4,
   }
 
   /** included parts */
