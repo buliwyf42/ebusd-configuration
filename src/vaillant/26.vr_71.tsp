@@ -144,13 +144,23 @@ namespace Vr_71 {
   }
 
   /**
-   * Mixer-circuit operation status. Value 4 is written by the controller in a
-   * short daily burst (~5 min) on otherwise-off circuits — a "keep valve
-   * operable" maintenance run (anti-seize). See issue #620.
+   * Mixer-circuit operation status. See issue #620.
+   *
+   * Value 4 is written by the controller in a short daily burst (~5 min) on
+   * otherwise-off circuits — a "keep valve operable" maintenance run
+   * (anti-seize).
+   *
+   * Value 2 occurs on cooling-capable systems while the circuit is cooling
+   * (reported for a VR 71 + VRC 700 driving aroVAIR convectors: flow target
+   * 10 °C at 2 versus 42.5-44 °C at 1). On those systems 1 therefore means
+   * "heating" rather than a generic "on"; the label is kept as `on` because
+   * this field used the shared `onoff` type before, and renaming it would
+   * change the reported state for every existing installation.
    */
   enum Values_McStatus {
     off: 0,
     on: 1,
+    cooling: 2,
     keepValveOperable: 4,
   }
 
