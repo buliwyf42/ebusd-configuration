@@ -1,7 +1,6 @@
 import "@ebusd/ebus-typespec";
 import "./_templates.tsp";
 import "./b516_inc.tsp";
-import "./hcmode_inc.tsp";
 using Ebus;
 using Ebus.Num;
 using Ebus.Dtm;
@@ -92,13 +91,16 @@ namespace Vwz {
   // Status01 layout on a second VWZ MEH 97/6 (SW=0902) by
   // @meierchen006.
   //
-  // The master (0x10) polls these families on slave 0x76; ebusd
-  // subscribes via *u — no active reads are issued.
+  // The master (0x10) polls b504 00, b511 01 and b512 0f on slave
+  // 0x76 every ~10 s, so ebusd receives them passively without
+  // issuing active reads.
   //
-  // DateTime, Status01/02, Status16 and the common SetMode arrive via
-  // the existing Hcmode_inc union below; PowerConsumptionHmu arrives
-  // via B516_inc. Their byte layouts on 0x76 are identical to those
-  // used by the HMU on 0x08.
+  // DateTime and Status01 are defined below with the HMU byte layout;
+  // PowerConsumptionHmu arrives via B516_inc. Hcmode_inc is NOT
+  // included: its SetMode is 8 bytes, while the controller sends a
+  // 9-byte b510 00 to 0x76 (seen on CTLV2 and CTLV3 installs, e.g.
+  // 1076b51009000000ffffff010000), and Status/Status02/Status16 never
+  // occur on 0x76 in either capture.
   //
   // Sensor positions for Status01 on this station (Vaillant manual
   // 0020291526, annex A "Funktionsschema" + annex C
@@ -190,10 +192,65 @@ namespace Vwz {
   // on. Mapped as `idle` to describe the observation without claiming a
   // meaning for it.
   //
-  // The b51a 05ff32xx slow-poll family (1/h) carries the electric
-  // backup-heater (Heizstab) and 3-way diverter-valve (VUV) counters,
-  // matching @cyberthom42's #315 mapping.
+  // The b51a 05ff32xx family carries the electric backup-heater
+  // (Heizstab) and 3-way diverter-valve (VUV) counters, matching
+  // @cyberthom42's #315 mapping.
   // ----------------------------------------------------------------------
+
+  /** default *r */
+  @base(MF, 0x11)
+  model r_1 {}
+
+  /** date/time (same layout as HMU b504 00) */
+  @inherit(rm)
+  @ext(0)
+  model DateTime {
+    dcfstate: dcfstate;
+    btime: btime;
+    bdate: bdate;
+    temp: temp2;
+  }
+
+  /** flow/return/outside/DHW/storage temperature and pump status (same layout as HMU Status01) */
+  @inherit(r_1)
+  @ext(1)
+  model Status01 {
+    /** flow temperature (sensor at the backup-heater outlet) */
+    temp: temp1;
+
+    /** return temperature */
+    temp_1: temp1;
+
+    /** outside temperature */
+    temp_2: temp2;
+
+    /** hot water temperature */
+    temp_3: temp1;
+
+    /** storage temperature */
+    temp_4: temp1;
+
+    /** pump status */
+    pumpstate: pumpstate;
+  }
+
+  /** electric backup heater runtime in min and starts in Hc mode */
+  @inherit(r_1)
+  @ext(0x18, 1)
+  model RunStatsImmersionHeaterHc {
+    @maxLength(1) ign: IGN;
+    runtime: minutes4;
+    cycles: cntstarts;
+  }
+
+  /** electric backup heater runtime in min and starts in Hwc mode */
+  @inherit(r_1)
+  @ext(0x18, 0x2)
+  model RunStatsImmersionHeaterHwc {
+    @maxLength(1) ign: IGN;
+    runtime: minutes4;
+    cycles: cntstarts;
+  }
 
   /** default *u for b512 0f family */
   @passive
@@ -240,11 +297,14 @@ namespace Vwz {
 
   // ----------------------------------------------------------------------
   // Heizstab (electric backup heater) + 3-way valve telemetry.
-  // Slow-polled (1/h). Mapping per @cyberthom42 issue #315.
+  // Mapping per @cyberthom42 issue #315. Defined as *r, not passive:
+  // the controller never polls these IDs on 0x76 (CTLV2 and CTLV3
+  // captures); only a myVaillant/sensoNET gateway (0xf1) reads them,
+  // about once per hour. Without such a gateway, passive definitions
+  // would never receive data.
   // ----------------------------------------------------------------------
 
-  /** default *u for b51a 05 ff 32 xx (Heizstab statistics) */
-  @passive
+  /** default *r for b51a 05 ff 32 xx (Heizstab statistics) */
   @base(MF, 0x1a, 0x5, 0xff, 0x32)
   model u_b51a32 {
     @maxLength(3)
@@ -273,8 +333,7 @@ namespace Vwz {
     value: UIN;
   }
 
-  /** default *u for b51a 05 ff 33 xx (Heizstab config) */
-  @passive
+  /** default *r for b51a 05 ff 33 xx (Heizstab config) */
   @base(MF, 0x1a, 0x5, 0xff, 0x33)
   model u_b51a33 {
     @maxLength(3)
@@ -291,7 +350,6 @@ namespace Vwz {
 
   /** included parts */
   union _includes {
-    Hcmode_inc,
     B516_inc,
   }
 }
