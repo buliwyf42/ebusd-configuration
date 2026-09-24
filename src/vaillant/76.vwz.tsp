@@ -95,12 +95,15 @@ namespace Vwz {
   // 0x76 every ~10 s, so ebusd receives them passively without
   // issuing active reads.
   //
-  // DateTime and Status01 are defined below with the HMU byte layout;
-  // PowerConsumptionHmu arrives via B516_inc. Hcmode_inc is NOT
-  // included: its SetMode is 8 bytes, while the controller sends a
-  // 9-byte b510 00 to 0x76 (seen on CTLV2 and CTLV3 installs, e.g.
-  // 1076b51009000000ffffff010000), and Status/Status02/Status16 never
-  // occur on 0x76 in either capture.
+  // DateTime, Status01 and SetMode are defined below with the HMU byte
+  // layout; PowerConsumptionHmu arrives via B516_inc. Hcmode_inc is not
+  // included as a whole because Status/Status02/Status16 never occur on
+  // 0x76. SetMode (b510 00) is byte-identical to the HMU's, verified on
+  // CTLV2, CTLV3 and VRC700 installs. Which transitions reach 0x76 is
+  // controller-dependent: a VRC700 sends water for compressor DHW, a
+  // CTLV2 only for DHW runs using the backup heater, a CTLV3 sends the
+  // flow setpoint when the backup heater takes over space heating. It
+  // is defined passive only; writing it is left to the controller.
   //
   // Sensor positions for Status01 on this station (Vaillant manual
   // 0020291526, annex A "Funktionsschema" + annex C
@@ -232,6 +235,36 @@ namespace Vwz {
 
     /** pump status */
     pumpstate: pumpstate;
+  }
+
+  /** default *uw */
+  @write
+  @passive
+  @base(MF, 0x10)
+  model uw {}
+
+  /** operation mode sent by the controller (same layout as HMU SetMode) */
+  @inherit(uw)
+  @ext(0)
+  model SetMode {
+    hcmode: hcmode;
+    flowtempdesired: temp1;
+    hwctempdesired: temp1;
+    hwcflowtempdesired: temp0;
+
+    @maxLength(1)
+    ign: IGN;
+
+    disablehc: BI0;
+    disablehwctapping: BI1;
+    disablehwcload: BI2;
+
+    @maxLength(1)
+    ign_1: IGN;
+
+    remoteControlHcPump: BI0;
+    releaseBackup: BI1;
+    releaseCooling: BI2;
   }
 
   /** electric backup heater runtime in min and starts in Hc mode */
