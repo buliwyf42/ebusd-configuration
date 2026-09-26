@@ -62,7 +62,7 @@ namespace Vwz {
 
   /** enable test outdoor temperature */
   @inherit(ws_1)
-  @ext
+  @ext(0x45)
   model EnableTestOutdoorTemp {}
 
   /** outdoor temperature */
@@ -91,9 +91,9 @@ namespace Vwz {
   // Status01 layout on a second VWZ MEH 97/6 (SW=0902) by
   // @meierchen006.
   //
-  // The master (0x10) polls b504 00, b511 01 and b512 0f on slave
-  // 0x76 every ~10 s, so ebusd receives them passively without
-  // issuing active reads.
+  // The master (0x10) polls b511 01 and b512 0f on slave 0x76 every
+  // ~10 s and b504 00 about once per minute, so ebusd receives them
+  // passively without issuing active reads.
   //
   // DateTime, Status01 and SetMode are defined below with the HMU byte
   // layout; PowerConsumptionHmu arrives via B516_inc. Hcmode_inc is not
@@ -113,9 +113,9 @@ namespace Vwz {
   // HMU flow sensor, more when the backup heater contributes. The
   // storage temp is the DHW cylinder sensor on X22 ("Temperatursensor
   // Warmwasserspeicher"), matching the lower cylinder sensor per
-  // @meierchen006. Polled every few seconds by the master (~6/min
-  // here, ~1/s reported by @meierchen006), Status01 is the fastest
-  // passive flow/storage temperature source on the bus.
+  // @meierchen006. Polled about every 10 s by the master (~6/min,
+  // confirmed on installs with and without a VR921 gateway), Status01
+  // is the fastest passive flow/storage temperature source on the bus.
   //
   // StatusDhw (b512 0f, request-content +, slave response) is
   // VWZIO-specific. Replaces what we'd previously split as
@@ -165,8 +165,8 @@ namespace Vwz {
   // Neither value mirrors hmu StatusCirPump. On the CTLV2 install that
   // message is a constant on, written every 5 min (193/193 telegrams in
   // the container log) while PumpMode sits at 0, and MultiRelaySetting
-  // there reads unknown rather than circulation -- no circulation is
-  // configured at all. So 0 means "no consumer selected", not
+  // there reads not_connected rather than circulation -- no circulation
+  // is configured at all. So 0 means "no consumer selected", not
   // "circulation inactive", and on an install without a circulation
   // pump the 2 simply never occurs.
   //
