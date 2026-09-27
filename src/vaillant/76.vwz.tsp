@@ -95,8 +95,8 @@ namespace Vwz {
   // ~10 s and b504 00 about once per minute, so ebusd receives them
   // passively without issuing active reads.
   //
-  // DateTime, Status01 and SetMode are defined below with the HMU byte
-  // layout; PowerConsumptionHmu arrives via B516_inc. Hcmode_inc is not
+  // DateTime, Status01, SetMode and PowerConsumptionVwz are defined
+  // below with the HMU byte layout. Hcmode_inc is not
   // included as a whole because Status/Status02/Status16 never occur on
   // 0x76. SetMode (b510 00) is byte-identical to the HMU's, verified on
   // CTLV2, CTLV3 and VRC700 installs. Which transitions reach 0x76 is
@@ -379,6 +379,29 @@ namespace Vwz {
   model ImmersionHeaterPowerLimit {
     @unit("kW")
     value: UIN;
+  }
+
+  // b516 14 is the station's own current power (standby 0.003 kW here,
+  // matching myVaillant), same layout as the HMU's PowerConsumptionHmu,
+  // which lives in 08.hmu.HW5103.tsp, not in B516_inc. Only a
+  // myVaillant/sensoNET gateway (0xf1) reads it, about once per minute,
+  // hence r. Firmware-dependent: VWZIO SW=0901 answers, VWZ00 SW=0522
+  // answers with an empty response (not implemented), per @chrizzzp.
+
+  /** default *r for b516 */
+  @base(MF, 0x16)
+  model r_b516 {
+    @maxLength(1)
+    ign: IGN;
+  }
+
+  /** current power consumption of the hydraulic station */
+  @inherit(r_b516)
+  @ext(0x14)
+  model PowerConsumptionVwz {
+    @unit("kW")
+    @divisor(1000)
+    value: EXP;
   }
 
   /** included parts */
