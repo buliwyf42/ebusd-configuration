@@ -250,7 +250,9 @@ namespace Vwz {
     hcmode: hcmode;
     flowtempdesired: temp1;
     hwctempdesired: temp1;
-    hwcflowtempdesired: temp0;
+
+    /** 0.5 °C steps like flowtempdesired (0x6a = 53 °C / 0x96 = 75 °C) - the HMU reports the same target as RunDataTargetFlowTemp */
+    hwcflowtempdesired: temp1;
 
     @maxLength(1)
     ign: IGN;
