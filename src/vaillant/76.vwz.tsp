@@ -406,6 +406,27 @@ namespace Vwz {
     value: EXP;
   }
 
+  // b509 54 02 bb 09 is the station's building-circuit flow, the VWZIO
+  // counterpart of the HMU's /ba09 (RunDataBuildingCircuitFlow in
+  // 08.hmu.HW5103.tsp). It equals the flow in b512 13 exactly (80 pairs,
+  // mean deviation 0.0 l/h), see issue #686. Only a myVaillant/sensoNET
+  // gateway (0xf1) reads it, about once per hour, hence r.
+
+  /** default *r for b509 */
+  @base(MF, 0x9, 0x54, 0x2, 0)
+  model r_b509 {
+    @maxLength(4)
+    ign: IGN;
+  }
+
+  /** building circuit flow */
+  @inherit(r_b509)
+  @ext(0xbb, 0x09)
+  model RunDataBuildingCircuitFlow {
+    @unit("L/h")
+    value: EXP;
+  }
+
   /** included parts */
   union _includes {
     B516_inc,
