@@ -10,9 +10,11 @@ namespace Vaillant;
 // @zz(0x76)
 namespace Vwz {
   // ----------------------------------------------------------------------
-  // Service tests (existing, unchanged from PR 330)
-  // VWZIO exposes the same 3 service tests as the VWZ; reachable only
-  // after the matching EnableTest* write.
+  // Service tests (from PR 330, single-request form as in #330/#407)
+  // The value comes with the answer to b514 05 xx 03ffff; the bare
+  // b514 05 xx gets a short answer, and a separate write of 03ffff
+  // followed by the bare read does not work either (VWZIO SW=0607,
+  // verified in PR #598).
   // ----------------------------------------------------------------------
 
   /** default *rs for user level "service" */
@@ -23,51 +25,26 @@ namespace Vwz {
     ign: IGN;
   }
 
-  /** default *ws for user level "service" */
-  @write
-  @auth("service")
-  @base(MF, 0x14, 0x5)
-  model ws_1 {
-    @maxLength(3)
-    @constValue("03FFFF")
-    ignore: HEX;
-  }
-
-  /** enable test 3 way valve */
-  @inherit(ws_1)
-  @ext(0x2)
-  model EnableTestThreeWayValve {}
-
   /** 3 way valve */
   @inherit(rs)
-  @ext(0x2)
+  @ext(0x2, 0x3, 0xff, 0xff)
   model TestThreeWayValve {
     @values(Values_TestThreeWayValve)
     value: UCH;
   }
 
-  /** enable test hwc temperature */
-  @inherit(ws_1)
-  @ext(0x2c)
-  model EnableTestHwcTemp {}
-
   /** hwc temperature */
   @inherit(rs)
-  @ext(0x2c)
+  @ext(0x2c, 0x3, 0xff, 0xff)
   model TestHwcTemp {
     @unit("°C")
     @divisor(10)
     value: temps2;
   }
 
-  /** enable test outdoor temperature */
-  @inherit(ws_1)
-  @ext(0x45)
-  model EnableTestOutdoorTemp {}
-
   /** outdoor temperature */
   @inherit(rs)
-  @ext(0x45)
+  @ext(0x45, 0x3, 0xff, 0xff)
   model TestOutdoorTemp {
     @unit("°C")
     @divisor(10)
