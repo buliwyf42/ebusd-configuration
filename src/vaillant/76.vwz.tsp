@@ -269,6 +269,10 @@ namespace Vwz {
     releaseCooling: BI2;
   }
 
+  // b511 18 01/02 answer on SW=0901 but return an empty response on
+  // SW=0607 (PR #598). The totals ImmersionHeaterHours/Starts on b51a
+  // answer on both firmwares.
+
   /** electric backup heater runtime in min and starts in Hc mode */
   @inherit(r_1)
   @ext(0x18, 1)
