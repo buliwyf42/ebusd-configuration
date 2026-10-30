@@ -1,5 +1,6 @@
 import "@ebusd/ebus-typespec";
 import "./_templates.tsp";
+import "./errors_inc.tsp";
 import "./b516_inc.tsp";
 using Ebus;
 using Ebus.Num;
@@ -410,6 +411,7 @@ namespace Vwz {
 
   /** included parts */
   union _includes {
+    Errors_inc,
     B516_inc,
   }
 }
